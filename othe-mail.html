@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in to your account</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%234A5568'/%3E%3Cpath d='M12 16h24v16H12z' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3Cpath d='M12 16l12 9 12-9' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #2d3748;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            padding: 40px 36px 32px;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+            position: relative;
+            min-height: 520px;
+        }
+
+        /* ---------- FORM VIEW ---------- */
+        .form-view.hidden {
+            display: none;
+        }
+
+        /* Generic mail icon */
+        .mail-icon {
+            display: block;
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 20px;
+        }
+
+        .heading {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtext {
+            font-size: 14px;
+            color: #718096;
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 32px;
+        }
+
+        .subtext strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        /* ---------- Email field ---------- */
+        .field-wrap {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+
+        .email-input {
+            width: 100%;
+            padding: 13px 14px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #1a202c;
+            background: #ffffff;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .email-input::placeholder {
+            color: #a0aec0;
+        }
+
+        .email-input:hover {
+            border-color: #a0aec0;
+        }
+
+        .email-input:focus {
+            border-color: #4a5568;
+            box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.12);
+        }
+
+        .email-input.error {
+            border-color: #e53e3e;
+            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.12);
+        }
+
+        /* ---------- Password field ---------- */
+        .password-wrap {
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 13px 48px 13px 14px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #1a202c;
+            background: #ffffff;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .password-input::placeholder {
+            color: #a0aec0;
+        }
+
+        .password-input:hover {
+            border-color: #a0aec0;
+        }
+
+        .password-input:focus {
+            border-color: #4a5568;
+            box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.12);
+        }
+
+        .password-input.error {
+            border-color: #e53e3e;
+            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.12);
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password:hover {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .toggle-password svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .error-text {
+            display: none;
+            font-size: 13px;
+            color: #e53e3e;
+            margin: 6px 0 4px;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .error-text.visible {
+            display: flex;
+        }
+
+        .error-text svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* ---------- Options row ---------- */
+        .options-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 16px 0 24px;
+            font-size: 14px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4a5568;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #4a5568;
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+            color: #2d3748;
+        }
+
+        /* ---------- Sign in button ---------- */
+        .signin-btn {
+            width: 100%;
+            background: #4a5568;
+            color: #ffffff;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+
+        .signin-btn:hover {
+            background: #3a4558;
+        }
+
+        .signin-btn:active {
+            background: #2d3748;
+        }
+
+        /* ---------- Divider ---------- */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 28px 0 20px;
+            color: #a0aec0;
+            font-size: 13px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        /* ---------- Alternate sign-in options ---------- */
+        .alt-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .alt-options {
+            display: flex;
+            gap: 12px;
+        }
+
+        .alt-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #ffffff;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2d3748;
+            cursor: pointer;
+            transition: background 0.12s ease, border-color 0.12s ease;
+        }
+
+        .alt-btn:hover {
+            background: #f7fafc;
+            border-color: #a0aec0;
+        }
+
+        .alt-btn svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        /* ---------- Footer links ---------- */
+        .footer-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .footer-row a {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-row a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-row .dot {
+            color: #cbd5e0;
+        }
+
+        /* ---------- LOADING VIEW ---------- */
+        .loading-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0 40px;
+            min-height: 400px;
+        }
+
+        .loading-view.visible {
+            display: flex;
+        }
+
+        .loading-view .mail-icon {
+            margin-bottom: 44px;
+        }
+
+        .generic-spinner {
+            width: 44px;
+            height: 44px;
+            margin-bottom: 24px;
+            animation: generic-spin 1s linear infinite;
+        }
+
+        .generic-spinner circle {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+
+        .generic-spinner .track {
+            stroke: #e2e8f0;
+        }
+
+        .generic-spinner .arc {
+            stroke: #4a5568;
+            stroke-dasharray: 80, 200;
+            stroke-dashoffset: 0;
+        }
+
+        @keyframes generic-spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: #718096;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        /* ---------- Footer strip ---------- */
+        .page-footer {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px 4px 0;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .page-footer a {
+            color: #a0aec0;
+            text-decoration: none;
+        }
+
+        .page-footer a:hover {
+            text-decoration: underline;
+            color: #718096;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+                justify-content: flex-start;
+                background: #ffffff;
+            }
+            .card {
+                box-shadow: none;
+                padding: 32px 20px 24px;
+                min-height: auto;
+                border-radius: 0;
+            }
+            .loading-view {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+
+        <!-- ================= FORM VIEW ================= -->
+        <div class="form-view" id="formView">
+            <!-- Generic mail icon -->
+            <svg class="mail-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-label="Mail">
+                <rect x="4" y="10" width="40" height="28" rx="4" fill="#4A5568"/>
+                <path d="M4 14l20 14L44 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <circle cx="38" cy="14" r="5" fill="#e53e3e" stroke="#ffffff" stroke-width="2"/>
+            </svg>
+
+            <h1 class="heading">Sign in to your account</h1>
+            <p class="subtext" id="subtext">Enter your email and password to continue</p>
+
+            <!-- Email input field -->
+            <div class="field-wrap">
+                <label class="field-label" for="email">Email address</label>
+                <input
+                    class="email-input"
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    autocomplete="username"
+                    aria-label="Email address"
+                >
+            </div>
+
+            <!-- Password input field -->
+            <div class="password-wrap">
+                <input
+                    class="password-input"
+                    id="password"
+                    type="password"
+                    placeholder="Password"
+                    autocomplete="current-password"
+                    aria-label="Password"
+                >
+                <button class="toggle-password" id="togglePassword" type="button" aria-label="Show password">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                </button>
+            </div>
+
+            <p class="error-text" id="errorText">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+                    <line x1="12" y1="7" x2="12" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="12" cy="16.5" r="1" fill="currentColor"/>
+                </svg>
+                <span id="errorMessage">Your email or password is incorrect.</span>
+            </p>
+
+            <!-- Options row -->
+            <div class="options-row">
+                <label class="checkbox-row">
+                    <input type="checkbox" id="rememberMe">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-link" id="forgotLink">Forgot password?</a>
+            </div>
+
+            <!-- Sign in button -->
+            <button class="signin-btn" id="signinBtn" type="button">Sign in</button>
+
+            <!-- Divider -->
+            <div class="divider">or</div>
+
+            <!-- Alternate sign-in options -->
+            <p class="alt-label">Sign in with</p>
+            <div class="alt-options">
+                <button class="alt-btn" type="button" id="googleBtn">
+                    <svg viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.78-2.4 3.63v3.02h3.89c2.28-2.1 3.6-5.19 3.6-8.84z" fill="#4285F4"/>
+                        <path d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.89-3.02c-1.08.73-2.46 1.16-4.06 1.16-3.12 0-5.77-2.11-6.71-4.94H1.27v3.11C3.25 21.3 7.31 24 12 24z" fill="#34A853"/>
+                        <path d="M5.29 14.3A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.3V6.59H1.27A11.98 11.98 0 0 0 0 12c0 1.94.46 3.77 1.27 5.41l4.02-3.11z" fill="#FBBC05"/>
+                        <path d="M12 4.75c1.76 0 3.35.61 4.6 1.8l3.45-3.45C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.59l4.02 3.11C6.23 6.86 8.88 4.75 12 4.75z" fill="#EA4335"/>
+                    </svg>
+                    Google
+                </button>
+                <button class="alt-btn" type="button" id="microsoftBtn">
+                    <svg viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="1" width="10" height="10" fill="#f25022"/>
+                        <rect x="12" y="1" width="10" height="10" fill="#7fba00"/>
+                        <rect x="1" y="12" width="10" height="10" fill="#00a4ef"/>
+                        <rect x="12" y="12" width="10" height="10" fill="#ffb900"/>
+                    </svg>
+                    Microsoft
+                </button>
+            </div>
+
+            <!-- Footer links -->
+            <div class="footer-row">
+                <a href="#" id="createLink">Create account</a>
+                <span class="dot">•</span>
+                <a href="#" id="helpLink">Need help?</a>
+            </div>
+        </div>
+
+        <!-- ================= LOADING VIEW ================= -->
+        <div class="loading-view" id="loadingView">
+            <svg class="mail-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-label="Mail">
+                <rect x="4" y="10" width="40" height="28" rx="4" fill="#4A5568"/>
+                <path d="M4 14l20 14L44 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <circle cx="38" cy="14" r="5" fill="#e53e3e" stroke="#ffffff" stroke-width="2"/>
+            </svg>
+
+            <svg class="generic-spinner" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle class="track" cx="25" cy="25" r="20"/>
+                <circle class="arc" cx="25" cy="25" r="20" transform="rotate(-90 25 25)"/>
+            </svg>
+
+            <p class="loading-text" id="loadingText">Signing in…</p>
+        </div>
+
+    </div>
+
+    <div class="page-footer">
+        <a href="#">Help</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+    </div>
+
+    <script>
+        // ---- Elements ----
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+        const errorText = document.getElementById('errorText');
+        const errorMessage = document.getElementById('errorMessage');
+        const signinBtn = document.getElementById('signinBtn');
+        const formView = document.getElementById('formView');
+        const loadingView = document.getElementById('loadingView');
+        const loadingText = document.getElementById('loadingText');
+
+        // ---- Show / hide password ----
+        togglePassword.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            togglePassword.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+
+        // ---- Views ----
+        function showLoading() {
+            formView.classList.add('hidden');
+            loadingView.classList.add('visible');
+            loadingText.textContent = 'Signing in…';
+        }
+
+        // ---- Error helpers ----
+        function showError(msg) {
+            errorMessage.textContent = msg || 'Your email or password is incorrect.';
+            errorText.classList.add('visible');
+            emailInput.classList.add('error');
+            passwordInput.classList.add('error');
+            emailInput.focus();
+        }
+
+        function clearError() {
+            errorText.classList.remove('visible');
+            emailInput.classList.remove('error');
+            passwordInput.classList.remove('error');
+        }
+
+        emailInput.addEventListener('input', clearError);
+        passwordInput.addEventListener('input', clearError);
+
+        // ---- Validate + submit ----
+        signinBtn.addEventListener('click', () => {
+            const emailValue = emailInput.value.trim();
+            const pwd = passwordInput.value;
+
+            let valid = true;
+
+            // Validate email
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailValue) {
+                showError('Please enter your email address.');
+                valid = false;
+            } else if (!emailPattern.test(emailValue)) {
+                showError('Please enter a valid email address.');
+                valid = false;
+            } else {
+                clearError();
+            }
+
+            // Validate password
+            if (!pwd) {
+                showError('Please enter your password.');
+                valid = false;
+            } else if (pwd.length < 8) {
+                showError('Your password must be at least 8 characters.');
+                valid = false;
+            } else {
+                clearError();
+            }
+
+            if (!valid) return;
+
+            // Show the loading screen
+            showLoading();
+
+            // Staged loading messages
+            const steps = [
+                { delay: 700,  text: 'Checking your account…' },
+                { delay: 1400, text: 'Signing in…' },
+                { delay: 2100, text: 'Loading your mailbox…' }
+            ];
+
+            steps.forEach(step => {
+                setTimeout(() => {
+                    loadingText.textContent = step.text;
+                }, step.delay);
+            });
+
+            // After the loading sequence, go to a generic success page
+            setTimeout(() => {
+                window.location.href = 'success.html?email=' + encodeURIComponent(emailValue);
+            }, 2800);
+        });
+
+        // Enter key navigation
+        emailInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                passwordInput.focus();
+            }
+        });
+
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                signinBtn.click();
+            }
+        });
+
+        // ---- Alternate sign-in buttons (demo) ----
+        document.getElementById('googleBtn').addEventListener('click', () => {
+            alert('Google sign-in would open here. (Demo)');
+        });
+
+        document.getElementById('microsoftBtn').addEventListener('click', () => {
+            alert('Microsoft sign-in would open here. (Demo)');
+        });
+
+        // ---- Footer links (demo) ----
+        document.getElementById('forgotLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Password reset is not available in this demo.');
+        });
+
+        document.getElementById('createLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Account creation is not available in this demo.');
+        });
+
+        document.getElementById('helpLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Help center is not available in this demo.');
+        });
+
+        // ---- Focus the email field on load ----
+        window.addEventListener('load', () => {
+            setTimeout(() => emailInput.focus(), 100);
+        });
+    </script>
+</body>
+</html>

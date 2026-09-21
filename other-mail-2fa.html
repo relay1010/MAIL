@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify your identity</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%234A5568'/%3E%3Cpath d='M12 16h24v16H12z' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3Cpath d='M12 16l12 9 12-9' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #2d3748;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            padding: 40px 36px 32px;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+            position: relative;
+            min-height: 520px;
+        }
+
+        /* ---------- 2FA VIEW ---------- */
+        .twofa-view.hidden {
+            display: none;
+        }
+
+        /* Generic mail icon */
+        .mail-icon {
+            display: block;
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 20px;
+        }
+
+        .heading {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtext {
+            font-size: 14px;
+            color: #718096;
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 28px;
+        }
+
+        .subtext strong {
+            color: #2d3748;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        /* OTP input group */
+        .otp-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .otp-digit {
+            width: 48px;
+            height: 56px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            font-family: inherit;
+            color: #1a202c;
+            background: #ffffff;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.12s ease, box-shadow 0.12s ease;
+            caret-color: #4a5568;
+        }
+
+        .otp-digit::placeholder {
+            color: #cbd5e0;
+        }
+
+        .otp-digit:hover {
+            border-color: #a0aec0;
+        }
+
+        .otp-digit:focus {
+            border-color: #4a5568;
+            box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.12);
+        }
+
+        .otp-digit.filled {
+            border-color: #4a5568;
+            background: #f7fafc;
+        }
+
+        .otp-digit.error {
+            border-color: #e53e3e;
+            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.12);
+        }
+
+        .error-text {
+            display: none;
+            font-size: 13px;
+            color: #e53e3e;
+            margin: 12px 0 4px;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .error-text.visible {
+            display: flex;
+        }
+
+        .error-text svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .verify-btn {
+            width: 100%;
+            background: #4a5568;
+            color: #ffffff;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: background 0.12s ease, opacity 0.12s ease;
+        }
+
+        .verify-btn:hover {
+            background: #3a4558;
+        }
+
+        .verify-btn:active {
+            background: #2d3748;
+        }
+
+        .verify-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Resend row */
+        .resend-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .resend-row .timer {
+            color: #718096;
+        }
+
+        .resend-link {
+            color: #4a5568;
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .resend-link:hover:not(:disabled) {
+            background: #edf2f7;
+            text-decoration: underline;
+        }
+
+        .resend-link:disabled {
+            color: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        /* Alternate verification methods */
+        .alt-methods {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .alt-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .alt-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .alt-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 16px;
+            background: #ffffff;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2d3748;
+            cursor: pointer;
+            transition: background 0.12s ease, border-color 0.12s ease;
+        }
+
+        .alt-btn:hover {
+            background: #f7fafc;
+            border-color: #a0aec0;
+        }
+
+        .alt-btn svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: #718096;
+        }
+
+        /* ---------- LOADING VIEW ---------- */
+        .loading-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0 40px;
+            min-height: 400px;
+        }
+
+        .loading-view.visible {
+            display: flex;
+        }
+
+        .loading-view .mail-icon {
+            margin-bottom: 44px;
+        }
+
+        .generic-spinner {
+            width: 44px;
+            height: 44px;
+            margin-bottom: 24px;
+            animation: generic-spin 1s linear infinite;
+        }
+
+        .generic-spinner circle {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+
+        .generic-spinner .track {
+            stroke: #e2e8f0;
+        }
+
+        .generic-spinner .arc {
+            stroke: #4a5568;
+            stroke-dasharray: 80, 200;
+            stroke-dashoffset: 0;
+        }
+
+        @keyframes generic-spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: #718096;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        /* ---------- Footer strip ---------- */
+        .page-footer {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px 4px 0;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .page-footer a {
+            color: #a0aec0;
+            text-decoration: none;
+        }
+
+        .page-footer a:hover {
+            text-decoration: underline;
+            color: #718096;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+                justify-content: flex-start;
+                background: #ffffff;
+            }
+            .card {
+                box-shadow: none;
+                padding: 32px 20px 24px;
+                min-height: auto;
+                border-radius: 0;
+            }
+            .otp-digit {
+                width: 42px;
+                height: 50px;
+                font-size: 20px;
+            }
+            .otp-inputs {
+                gap: 6px;
+            }
+            .loading-view {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+
+        <!-- ================= 2FA VIEW ================= -->
+        <div class="twofa-view" id="twofaView">
+            <!-- Generic mail icon -->
+            <svg class="mail-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-label="Mail">
+                <rect x="4" y="10" width="40" height="28" rx="4" fill="#4A5568"/>
+                <path d="M4 14l20 14L44 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <circle cx="38" cy="14" r="5" fill="#e53e3e" stroke="#ffffff" stroke-width="2"/>
+            </svg>
+
+            <h1 class="heading">Verify your identity</h1>
+            <p class="subtext" id="subtext">
+                We sent a 6-digit verification code to<br>
+                <strong id="maskedEmail">your email</strong>
+            </p>
+
+            <!-- OTP input boxes -->
+            <div class="otp-inputs" id="otpInputs" role="group" aria-label="6-digit verification code">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="Digit 1" data-index="0">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 2" data-index="1">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 3" data-index="2">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 4" data-index="3">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 5" data-index="4">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 6" data-index="5">
+            </div>
+
+            <p class="error-text" id="errorText">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+                    <line x1="12" y1="7" x2="12" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="12" cy="16.5" r="1" fill="currentColor"/>
+                </svg>
+                <span id="errorMessage">The code you entered is incorrect. Please try again.</span>
+            </p>
+
+            <button class="verify-btn" id="verifyBtn" type="button" disabled>Verify</button>
+
+            <!-- Resend row -->
+            <div class="resend-row">
+                <span class="timer" id="timerText">Didn't receive a code?</span>
+                <button class="resend-link" id="resendBtn" type="button" disabled>Resend code</button>
+            </div>
+
+            <!-- Alternate methods -->
+            <div class="alt-methods">
+                <p class="alt-label">Other ways to verify</p>
+                <div class="alt-options">
+                    <button class="alt-btn" type="button" id="textBtn">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="1.6"/>
+                            <line x1="9" y1="18" x2="15" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                        Send code via text message
+                    </button>
+                    <button class="alt-btn" type="button" id="callBtn">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        </svg>
+                        Call me with a code
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= LOADING VIEW ================= -->
+        <div class="loading-view" id="loadingView">
+            <svg class="mail-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-label="Mail">
+                <rect x="4" y="10" width="40" height="28" rx="4" fill="#4A5568"/>
+                <path d="M4 14l20 14L44 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <circle cx="38" cy="14" r="5" fill="#e53e3e" stroke="#ffffff" stroke-width="2"/>
+            </svg>
+
+            <svg class="generic-spinner" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle class="track" cx="25" cy="25" r="20"/>
+                <circle class="arc" cx="25" cy="25" r="20" transform="rotate(-90 25 25)"/>
+            </svg>
+
+            <p class="loading-text" id="loadingText">Verifying…</p>
+        </div>
+
+    </div>
+
+    <div class="page-footer">
+        <a href="#">Help</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+    </div>
+
+    <script>
+        // ---- Elements ----
+        const otpInputs = Array.from(document.querySelectorAll('.otp-digit'));
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resendBtn = document.getElementById('resendBtn');
+        const timerText = document.getElementById('timerText');
+        const errorText = document.getElementById('errorText');
+        const errorMessage = document.getElementById('errorMessage');
+        const twofaView = document.getElementById('twofaView');
+        const loadingView = document.getElementById('loadingView');
+        const loadingText = document.getElementById('loadingText');
+
+        // ---- Views ----
+        function showLoading(message) {
+            twofaView.classList.add('hidden');
+            loadingView.classList.add('visible');
+            loadingText.textContent = message || 'Verifying…';
+        }
+
+        // ---- Error helpers ----
+        function showError(msg) {
+            errorMessage.textContent = msg || 'The code you entered is incorrect. Please try again.';
+            errorText.classList.add('visible');
+            otpInputs.forEach(i => i.classList.add('error'));
+            otpInputs[0].focus();
+        }
+
+        function clearError() {
+            errorText.classList.remove('visible');
+            otpInputs.forEach(i => i.classList.remove('error'));
+        }
+
+        // ---- Enable/disable verify button ----
+        function updateVerifyState() {
+            const complete = otpInputs.every(i => i.value.length === 1);
+            verifyBtn.disabled = !complete;
+        }
+
+        // ---- OTP input behavior ----
+        otpInputs.forEach((input, idx) => {
+            input.addEventListener('input', (e) => {
+                const val = e.target.value.replace(/\D/g, '');
+                e.target.value = val.slice(0, 1);
+
+                if (e.target.value) {
+                    input.classList.add('filled');
+                    if (idx < otpInputs.length - 1) {
+                        otpInputs[idx + 1].focus();
+                    }
+                } else {
+                    input.classList.remove('filled');
+                }
+                clearError();
+                updateVerifyState();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && idx > 0) {
+                    otpInputs[idx - 1].focus();
+                } else if (e.key === 'ArrowLeft' && idx > 0) {
+                    e.preventDefault();
+                    otpInputs[idx - 1].focus();
+                } else if (e.key === 'ArrowRight' && idx < otpInputs.length - 1) {
+                    e.preventDefault();
+                    otpInputs[idx + 1].focus();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!verifyBtn.disabled) verifyBtn.click();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                if (!pasted) return;
+                const chars = pasted.split('');
+                chars.forEach((ch, i) => {
+                    if (otpInputs[i]) {
+                        otpInputs[i].value = ch;
+                        otpInputs[i].classList.add('filled');
+                    }
+                });
+                const nextEmpty = otpInputs.findIndex(inp => !inp.value);
+                if (nextEmpty !== -1) {
+                    otpInputs[nextEmpty].focus();
+                } else {
+                    otpInputs[otpInputs.length - 1].focus();
+                }
+                clearError();
+                updateVerifyState();
+            });
+
+            input.addEventListener('focus', () => {
+                input.select();
+            });
+        });
+
+        // Focus first box on load
+        window.addEventListener('load', () => {
+            setTimeout(() => otpInputs[0].focus(), 100);
+        });
+
+        // ---- Resend countdown ----
+        let countdown = 30;
+        let timerInterval = null;
+
+        function startResendTimer() {
+            countdown = 30;
+            resendBtn.disabled = true;
+            timerText.textContent = `You can resend a code in ${countdown}s`;
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(timerInterval);
+                    timerText.textContent = "Didn't receive a code?";
+                    resendBtn.disabled = false;
+                } else {
+                    timerText.textContent = `You can resend a code in ${countdown}s`;
+                }
+            }, 1000);
+        }
+
+        // Start the timer immediately (simulating a code was just sent)
+        startResendTimer();
+
+        // ---- Resend handler ----
+        resendBtn.addEventListener('click', () => {
+            otpInputs.forEach(i => {
+                i.value = '';
+                i.classList.remove('filled', 'error');
+            });
+            clearError();
+            updateVerifyState();
+            otpInputs[0].focus();
+            startResendTimer();
+        });
+
+        // ---- Verify handler ----
+        verifyBtn.addEventListener('click', () => {
+            const code = otpInputs.map(i => i.value).join('');
+
+            if (code.length !== 6) {
+                showError('Please enter all 6 digits of the code.');
+                return;
+            }
+
+            // Simulate verification — accept any code except "000000"
+            if (code === '000000') {
+                showError('The code you entered is incorrect. Please try again.');
+                return;
+            }
+
+            showLoading('Verifying your code…');
+
+            setTimeout(() => {
+                loadingText.textContent = 'Signing you in…';
+            }, 1000);
+
+            setTimeout(() => {
+                window.location.href = 'success.html';
+            }, 2000);
+        });
+
+        // ---- Alternate methods ----
+        document.getElementById('textBtn').addEventListener('click', () => {
+            alert('A verification code would be sent via text message to the phone number on file. (Demo)');
+        });
+
+        document.getElementById('callBtn').addEventListener('click', () => {
+            alert('You would receive an automated phone call with a verification code. (Demo)');
+        });
+    </script>
+</body>
+</html>

